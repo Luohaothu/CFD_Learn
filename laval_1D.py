@@ -8,9 +8,8 @@ Method : Maccormack's Technique
 
 import numpy as np
 from pylab import *
-import time
 
-n = 31 #node numbers
+n = 61 #node numbers
 L = 3.0  #total length
 rou = np.zeros(n)       #density
 v   = np.zeros(n)       #velocity
@@ -44,30 +43,46 @@ v = (0.1 + 1.09 * x) * np.sqrt(T)
 #
 #show()
 
+rou_hist = []
+v_hist = []
+T_hist = []
+M_hist = []
+dvdt_hist = []
+drdt_hist = []
+dTdt_hist = []
 #Calculation
 for i in xrange(STEP_N):
+    rou_hist.append(rou[n/2])
+    v_hist.append(v[n/2])
+    T_hist.append(T[n/2])
+    M_hist.append(v[n/2] / sqrt(T[n/2]))
+    dvdt_hist.append(log10(abs(np.max(dvdt))))
+    drdt_hist.append(log10(abs(np.max(drdt))))
+    dTdt_hist.append(log10(abs(np.max(dTdt))))
     dt_l = C * dx / (abs(v) + np.sqrt(T))
     dt = np.min(dt_l)
     t += dt
-    drdt1 = -v * (np.roll(rou, -1) - rou) / dx - rou * (roll(v, -1) - v) / dx \
+    
+    #predict-step
+    drdt1 = -v * (roll(rou, -1) - rou) / dx - rou * (roll(v, -1) - v) / dx \
            -rou * v * (np.log(roll(A, -1)) - np.log(A)) / dx
-    dvdt1 = v * (roll(v, -1) - v) / dx - 1 / gama * ((roll(T, -1) - T) / dx \
+    dvdt1 = -v * (roll(v, -1) - v) / dx - 1 / gama * ((roll(T, -1) - T) / dx \
            + T / rou * (roll(rou, -1) - rou) / dx)
     dTdt1 = -v * (roll(T, -1) - T) / dx - (gama - 1) * T *((roll(v, -1) - v)/dx\
            + v * (np.log(roll(A, -1)) - np.log(A)) / dx)
     
-    #predict-step
+    drdt1[-1] = 0
+    dvdt1[-1] = 0
+    dTdt1[-1] = 0
+    drdt1[0] = 0
+    dvdt1[0] = 0
+    dTdt1[0] = 0
+
+    
     rou_pre = rou + drdt1 * dt
     v_pre   = v + dvdt1 * dt
     T_pre   = T + dTdt1 *dt
-    
-    v_pre[0] = 2 * v_pre[1] - v_pre[2]
-    v_pre[-1]= 2 * v_pre[-2] - v_pre[-3]
-    rou_pre[0] = 1.0
-    rou_pre[-1] = 2 * rou_pre[-2] - rou_pre[-3]
-    T_pre[0] = 1.0
-    T_pre[-1] = 2 * T_pre[-2] - T_pre[-3]
-    
+        
     #correct-step
     drdt2 = -v_pre * (rou_pre - roll(rou_pre, 1)) / dx - rou_pre * (v_pre - roll(v_pre, 1)) / dx \
             -rou_pre * v_pre * (np.log(A) - np.log(roll(A, 1))) / dx
@@ -76,9 +91,17 @@ for i in xrange(STEP_N):
     dTdt2 = -v_pre * (T_pre - roll(T_pre, 1)) / dx - (gama - 1) * T_pre * ((v_pre - roll(v_pre, 1)) / dx \
             +v_pre * (np.log(A) - np.log(roll(A, 1))) / dx)
     
-    drdt = np.average([drdt1, drdt2])
-    dvdt = np.average([dvdt1, dvdt2])
-    dTdt = np.average([dTdt1, dTdt2])
+    drdt2[-1] = 0
+    dvdt2[-1] = 0
+    dTdt2[-1] = 0
+    drdt2[0] = 0
+    dvdt2[0] = 0
+    dTdt2[0] = 0
+
+
+    drdt = (drdt1 + drdt2) / 2
+    dvdt = (dvdt1 + dvdt2) / 2
+    dTdt = (dTdt1 + dTdt2) / 2
     
     rou = rou + drdt * dt
     v   = v   + dvdt * dt
@@ -96,6 +119,24 @@ for i in xrange(STEP_N):
     print "%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t\n" %(t, dt, np.average(drdt), np.average(dvdt), \
             np.average(dTdt), np.average(rou), np.average(v), np.average(T))
     
-    #time.sleep(.1)
-
+subplot(2,3,1)
 plot(x, v/np.sqrt(T))
+title('Mach number')
+subplot(2,3,2)
+plot(np.array(range(STEP_N)), np.array(rou_hist))
+title('rou history data')
+subplot(2,3,3)
+plot(np.array(range(STEP_N)), np.array(v_hist))
+title('velocity history data')
+subplot(2,3,4)
+plot(np.array(range(STEP_N)), np.array(T_hist))
+title('temperture history data')
+subplot(2,3,5)
+plot(np.array(range(STEP_N)), np.array(M_hist))
+title('Mach number history data')
+subplot(2,3,6)
+plot(np.array(range(STEP_N)), np.array(drdt_hist))
+plot(np.array(range(STEP_N)), np.array(dvdt_hist))
+plot(np.array(range(STEP_N)), np.array(dTdt_hist))
+title('partial derivative history data')
+show()
