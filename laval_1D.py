@@ -56,9 +56,7 @@ for i in xrange(STEP_N):
     v_hist.append(v[n/2])
     T_hist.append(T[n/2])
     M_hist.append(v[n/2] / sqrt(T[n/2]))
-    dvdt_hist.append(log10(abs(np.max(dvdt))))
-    drdt_hist.append(log10(abs(np.max(drdt))))
-    dTdt_hist.append(log10(abs(np.max(dTdt))))
+
     dt_l = C * dx / (abs(v) + np.sqrt(T))
     dt = np.min(dt_l)
     t += dt
@@ -113,6 +111,10 @@ for i in xrange(STEP_N):
     rou[-1] = 2 * rou[-2] - rou[-3]
     T[0] = 1.0
     T[-1] = 2 * T[-2] - T[-3]
+    
+    dvdt_hist.append(log10(abs(np.max(dvdt))))
+    drdt_hist.append(log10(abs(np.max(drdt))))
+    dTdt_hist.append(log10(abs(np.max(dTdt))))    
     
     if i / 10 == 0 :
         print "\n    t \t   dt \t  drdt\t  dvdt\t  dTdt\t   rou\t    v \t    T \n"
