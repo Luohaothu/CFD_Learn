@@ -1,9 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Spyder Editor
-
-This is a temporary script file.
-"""
 
 """
 CFD Solver of subsonic-supersonic isentropic nozzle flow
