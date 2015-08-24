@@ -116,7 +116,7 @@ for i in xrange(STEP_N):
     drdt_hist.append(log10(abs(np.max(drdt))))
     dTdt_hist.append(log10(abs(np.max(dTdt))))    
     
-    if i / 10 == 0 :
+    if mod(i, 10) == 0 :
         print "\n    t \t   dt \t  drdt\t  dvdt\t  dTdt\t   rou\t    v \t    T \n"
     print "%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t%6.3f\t\n" %(t, dt, np.average(drdt), np.average(dvdt), \
             np.average(dTdt), np.average(rou), np.average(v), np.average(T))
